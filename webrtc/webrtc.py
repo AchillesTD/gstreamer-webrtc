@@ -1,6 +1,3 @@
-
-
-import asyncio
 import os
 import sys
 
@@ -12,8 +9,6 @@ gi.require_version('GObject', '2.0')
 from gi.repository import GObject
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
-gi.require_version('GstWebRTC', '1.0')
-from gi.repository import GstWebRTC
 gi.require_version('GstSdp', '1.0')
 from gi.repository import GstSdp
 from gi.repository import GLib
@@ -25,7 +20,6 @@ Gst.init(None)
 
 VP8_CAPS = Gst.Caps.from_string('application/x-rtp,media=video,encoding-name=VP8,payload=97,clock-rate=90000')
 H264_CAPS = Gst.Caps.from_string('application/x-rtp,media=video,encoding-name=H264,payload=98,clock-rate=90000')
-OPUS_CAPS = Gst.Caps.from_string('application/x-rtp,media=audio,encoding-name=OPUS,payload=100,clock-rate=48000')
 
 
 
@@ -103,8 +97,6 @@ class WebRTC(EventEmitter):
             caps = H264_CAPS
         elif upcodec == 'VP8':
             caps = VP8_CAPS
-        elif upcodec == 'OPUS':
-            caps = OPUS_CAPS
         return self.webrtc.emit('add-transceiver', direction, caps)
 
 
@@ -123,10 +115,6 @@ class WebRTC(EventEmitter):
     def add_stream(self, stream):
         self.pipe.add(stream)
 
-        if stream.audio_pad:
-            audio_sink_pad = self.webrtc.get_request_pad('sink_%u')
-            stream.audio_pad.link(audio_sink_pad)
-
         if stream.video_pad:
             video_sink_pad = self.webrtc.get_request_pad('sink_%u')
             stream.video_pad.link(video_sink_pad)
@@ -138,10 +126,6 @@ class WebRTC(EventEmitter):
         if not stream in self.streams:
             return
         # todo need fix create offer error  when remove source
-        if stream.audio_pad:
-            sink_pad = stream.audio_pad.get_peer()
-            self.webrtc.release_request_pad(sink_pad)
-
         if stream.video_pad:
             sink_pad = stream.video_pad.get_peer()
             self.webrtc.release_request_pad(sink_pad)
@@ -172,26 +156,17 @@ class WebRTC(EventEmitter):
 
 
     def set_local_description(self, sdp):
-        #promise = Gst.Promise.new_with_change_func(self.set_description_result, self.webrtc, None)
         promise = Gst.Promise.new()
         self.webrtc.emit('set-local-description', sdp, promise)
         promise.interrupt()
 
     def set_remote_description(self, sdp):
-        #promise = Gst.Promise.new_with_change_func(self.set_description_result, self.webrtc, None)
         promise = Gst.Promise.new()
         self.webrtc.emit('set-remote-description', sdp, promise)
         promise.interrupt()
 
     def get_stats(self):
         pass
-
-    def set_description_result(self, promise, element, _):
-        ret = promise.wait()
-        if ret != Gst.PromiseResult.REPLIED:
-            return
-        reply = promise.get_reply()
-
 
     def _bus_call(self, bus, message, _):
         t = message.type
@@ -236,8 +211,6 @@ class WebRTC(EventEmitter):
 
         if 'video' in name:
             pad.link(self.outsink.video_pad)
-        elif 'audio' in name:
-            pad.link(self.outsink.audio_pad)
 
 
     def on_incoming_decodebin_pad(self, element, pad):
@@ -260,22 +233,3 @@ class WebRTC(EventEmitter):
             pad.link(q.get_static_pad('sink'))
             q.link(conv)
             conv.link(sink)
-        elif name.startswith('audio'):
-            q = Gst.ElementFactory.make('queue')
-            conv = Gst.ElementFactory.make('audioconvert')
-            resample = Gst.ElementFactory.make('audioresample')
-            sink = Gst.ElementFactory.make('autoaudiosink')
-            self.pipe.add(q)
-            self.pipe.add(conv)
-            self.pipe.add(resample)
-            self.pipe.add(sink)
-            self.pipe.sync_children_states()
-            pad.link(q.get_static_pad('sink'))
-            q.link(conv)
-            conv.link(resample)
-            resample.link(sink)
-
-
-
-
-

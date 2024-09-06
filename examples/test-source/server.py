@@ -1,22 +1,15 @@
-
 import time
 import json
 import asyncio
 import websockets
-
 
 from webrtc import WebRTC
 from webrtc import TestSource
 from webrtc import FileSink,RTMPSink
 
 import gi
-gi.require_version('GstSdp', '1.0')
-from gi.repository import GstSdp
 gi.require_version('GstWebRTC', '1.0')
 from gi.repository import GstWebRTC
-
-
-
 
 rtcs = {}
 
@@ -30,8 +23,7 @@ async def hello(websocket, path):
 
     @rtc.on('candidate')
     def on_candidate(candidate):
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(websocket.send(json.dumps({
+        asyncio.ensure_future(websocket.send(json.dumps({
             'candidate':candidate
         })))
         print('send candidate', candidate)
@@ -39,8 +31,7 @@ async def hello(websocket, path):
     @rtc.on('answer')
     def on_answer(answer):
         rtc.set_local_description(answer)
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(websocket.send(json.dumps({
+        asyncio.ensure_future(websocket.send(json.dumps({
             'answer':answer.sdp.as_text()
         })))
         print('send answer', answer.sdp.as_text())
@@ -48,8 +39,7 @@ async def hello(websocket, path):
     @rtc.on('offer')
     def on_offer(offer):
         rtc.set_local_description(offer)
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(websocket.send(json.dumps({
+        asyncio.ensure_future(websocket.send(json.dumps({
             'offer':offer.sdp.as_text()
         })))
         print('send offer', offer.sdp.as_text())
@@ -73,9 +63,7 @@ async def hello(websocket, path):
 
             if msg.get('answer'):
                 sdp = msg['answer']
-                _,sdpmsg = GstSdp.SDPMessage.new()
-                GstSdp.sdp_message_parse_buffer(bytes(sdp.encode()), sdpmsg)
-                answer = GstWebRTC.WebRTCSessionDescription.new(GstWebRTC.WebRTCSDPType.ANSWER, sdpmsg)
+                answer = GstWebRTC.WebRTCSessionDescription.new(GstWebRTC.WebRTCSDPType.ANSWER, sdp)
                 rtc.set_remote_description(answer)
 
             if msg.get('candidate') and msg['candidate'].get('candidate'):
