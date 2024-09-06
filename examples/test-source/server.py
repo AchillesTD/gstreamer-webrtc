@@ -1,13 +1,11 @@
-
 import time
 import json
 import asyncio
 import websockets
 
-
 from webrtc import WebRTC
-from webrtc import TestSource
-from webrtc import FileSink,RTMPSink
+from webrtc import RTSPSource
+from webrtc import FileSink, RTMPSink
 
 import gi
 gi.require_version('GstSdp', '1.0')
@@ -15,13 +13,9 @@ from gi.repository import GstSdp
 gi.require_version('GstWebRTC', '1.0')
 from gi.repository import GstWebRTC
 
-
-
-
 rtcs = {}
 
 async def hello(websocket, path):
-
     filesink = FileSink(str(time.time()) + '.mkv')
     #rtmpsink = RTMPSink('rtmp://localhost/live/live')
 
@@ -54,12 +48,11 @@ async def hello(websocket, path):
         })))
         print('send offer', offer.sdp.as_text())
 
-
     @rtc.on('negotiation-needed')
     def on_negotiation_needed(element):
         print('negotiation-needed', element)
 
-    source  = TestSource()
+    source = RTSPSource("your_rtsp_url_here")
 
     rtc.add_stream(source)
 
@@ -84,8 +77,6 @@ async def hello(websocket, path):
 
     finally:
         print('leave===========')
-
-
 
 start_server = websockets.serve(hello, '0.0.0.0', 8000)
 
