@@ -30,7 +30,7 @@ time.sleep(1)
 
 pc.create_offer()
 
-source = RTSPSource("your_rtsp_url_here")
+source = RTSPSource("rtsp://user:Iam_User1@192.168.104.61:554/cam/realmonitor?channel=11&subtype=0")
 
 pc.add_stream(source)
 

@@ -17,8 +17,6 @@ rtcs = {}
 
 async def hello(websocket, path):
     filesink = FileSink(str(time.time()) + '.mkv')
-    #rtmpsink = RTMPSink('rtmp://localhost/live/live')
-
     rtc = WebRTC(outsink=filesink)
     rtcs[websocket] = rtc
 
@@ -52,9 +50,9 @@ async def hello(websocket, path):
     def on_negotiation_needed(element):
         print('negotiation-needed', element)
 
-    source = RTSPSource("your_rtsp_url_here")
-
-    rtc.add_stream(source)
+    source = RTSPSource("rtsp://user:Iam_User1@192.168.104.61:554/cam/realmonitor?channel=11&subtype=0")
+    if source.video_srcpad:
+        rtc.add_stream(source)
 
     try:
         async for message in websocket:
