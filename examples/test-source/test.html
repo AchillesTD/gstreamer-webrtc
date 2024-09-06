@@ -23,14 +23,13 @@
 
     var socket;
 
-    function addVideoForStream(stream, muted) {
+    function addVideoForStream(stream) {
         const video = document.createElement("video");
         video.id = stream.id;
         video.width = 320;
         video.height = 240;
         video.srcObject = stream;
         video.autoplay = true;
-        video.muted = muted;
         container.appendChild(video);
     }
 
@@ -44,7 +43,7 @@
         pc.ontrack = function(event) {
             console.debug("pc::onTrack", event);
             if (event.streams && event.streams[0]) {
-                addVideoForStream(event.streams[0], false);
+                addVideoForStream(event.streams[0]);
             }
         };
 

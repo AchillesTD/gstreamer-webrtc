@@ -241,10 +241,6 @@ class RTSPSource(Source):
 
 
     @property
-    def audio_pad(self):
-        return self.audio_srcpad
-
-    @property
     def video_pad(self):
         return self.video_srcpad
 

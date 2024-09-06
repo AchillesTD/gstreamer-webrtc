@@ -51,7 +51,7 @@ async def hello(websocket, path):
         print('negotiation-needed', element)
 
     source = RTSPSource("rtsp://user:Iam_User1@192.168.104.61:554/cam/realmonitor?channel=11&subtype=0")
-    if source.video_srcpad:
+    if source.video_pad:
         rtc.add_stream(source)
 
     try:
