@@ -43,7 +43,9 @@
         
         pc.ontrack = function(event) {
             console.debug("pc::onTrack", event);
-            addVideoForStream(event.streams[0], false);
+            if (event.streams && event.streams[0]) {
+                addVideoForStream(event.streams[0], false);
+            }
         };
 
         pc.onicecandidate = function(event) {
